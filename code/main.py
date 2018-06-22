@@ -88,6 +88,7 @@ def import_data():
     print '\t--done'
     return dictionary, concepts, word2concept
 
+
 def import_lem_pos(dictionary, concepts, word2concept):
     """ Import the lem and pos data from the TRAIN_FEAT_IN path variables and integrates them in the retvals
     :param dictionary: all the tokens in the dataset,
@@ -129,15 +130,14 @@ def import_lem_pos(dictionary, concepts, word2concept):
     f.close()
 
     annotated_word2concept = []
-    miscellaneous = []
 
     for position in range(0, len(word2concept)):
         annotated_word2concept += [ (dictionary[position], word2concept[ position ][ 1 ]) ]
     dictionary += lem_dictionary #this SUMS lems in alg
-    dictionary += miscellaneous #this SUMS lems in alg
-    word2concept = annotated_word2concept #this subst lems in alg
+    word2concept = annotated_word2concept #this updates word2concept
     print '\t--done'
     return dictionary, concepts, word2concept
+
 
 def remove_sentence_delimeters(dictionary, concepts, word2concept):
     """ Remove <s> and </s> from the threee input params
@@ -160,6 +160,7 @@ def remove_sentence_delimeters(dictionary, concepts, word2concept):
     print '\t--done'
     return dictionary, concepts, word2concept
 
+
 def compute_dictionary_and_counts(dictionary_list):
     """ Init a Counter object with the dictionary list
     :param dictionary_list: all the tokens in the dataset,
@@ -177,6 +178,7 @@ def compute_dictionary_and_counts(dictionary_list):
     print '\t--done'
     return dictionary
 
+
 def compute_concept_counts_wout_iob(concepts):
     """ Init a Counter object with the concepts list without keeping into account the I-B annotation associated with it
     :param concepts: all the concepts in the dataset,
@@ -193,6 +195,7 @@ def compute_concept_counts_wout_iob(concepts):
     print '\t--done'
     return concepts_c
 
+
 def compute_concept_counts_w_iob(concepts_list):
     """ Init a Counter object with the concepts list keeping into account the I-B annotation associated with it
     :param concepts_list: all the concepts in the dataset,
@@ -208,6 +211,7 @@ def compute_concept_counts_w_iob(concepts_list):
     f.close()
     print '\t--done'
     return concepts
+
 
 def write_lexicon(dictionary, concepts):
     """ Writes out the lexicon on the LEXICON_LOG file
@@ -233,6 +237,7 @@ def write_lexicon(dictionary, concepts):
     f.close()
     print '\t--done'
 
+
 def create_word2concept(word2concept):
     """ Init a Counter object with the word2concept list
     :param word2concept: all the tuple(word, concept) in the dataset,
@@ -248,6 +253,7 @@ def create_word2concept(word2concept):
     f.close()
     print '\t--done'
     return word2concept
+
 
 def filter_data(word2concept, high_cut_threshold=None, low_cut_threshold=None):
     """ IF set the thresholds:
@@ -291,6 +297,7 @@ def filter_data(word2concept, high_cut_threshold=None, low_cut_threshold=None):
     print '\t--done'
     return word2concept_cutted
 
+
 def compute_likelihoods(word2concept_cutted):
     """ Computes the likelihood of each concept in the WORD2CONCEPT_CUTTED variable
     :param word2concept_cutted: all the tuple(word, concept) in the dataset,
@@ -311,6 +318,7 @@ def compute_likelihoods(word2concept_cutted):
         likelihood[key] = - math.log(value)
     print '\t--done'
     return word2concept_cutted, likelihood
+
 
 def compute_fst(word2concept_cutted, likelihood):
     """ Builds the fst of the single words-concept association
@@ -349,6 +357,7 @@ def compute_lm(ngram_order=2, smoothing_method='absolute'):
     )
     print '\t--done'
 
+
 def compose_final_model():
     """ Composes the final model and puts in the TRAINED_MODEL path
     """
@@ -357,9 +366,15 @@ def compose_final_model():
     os.system('fstcompose ' + likelihood_fst_model + ' ' + lm_model + ' > ' + trained_model)
     print '\t--done'
 
-def test_model():
+
+def test_model(high_cut_threshold=None, low_cut_threshold=None):
     """ Tests the model on the test set specified byt the TEST_DATA_IN and TEST_FEAT_IN and then puts the result in
-    the RESULT_FILE
+    the RESULT_FILE, the two threshold are used to understand either the configuration is using baseline or threshold
+    approach
+    :param high_cut_threshold: max amout of time a tuple must occour to be removed
+    :param low_cut_threshold: min amout of time a tuple must occour to be removed
+        :type high_cut_threshold: int
+        :type low_cut_threshold: int
     """
 
     print '\n\ttest model'
@@ -399,7 +414,10 @@ def test_model():
     test_feat_file.close()
 
     for position in range(len(sentences)):
-        sentence = sentences[position]
+        if high_cut_threshold is None and low_cut_threshold is None:
+            sentence = sentences[position]
+        else:
+            sentence = lemmas[position]
         concepts = concepts_all[position]
 
         input_sentence = ''
@@ -435,6 +453,7 @@ def test_model():
 
     result_file.close() #write out
     print '\t--done'
+
 
 def evaluate_model(ngram_order, smoothing_method, high_cut_threshold, low_cut_threshold):
     """ Evaluates the model using the ./conlleval.pl script that needs to be in the execution folder and then writes
@@ -492,7 +511,7 @@ if __name__ == "__main__" :
     compose_final_model()
 
     #STEP 6: test model
-    test_model()
+    test_model(high_cut_threshold, low_cut_threshold)
     evaluate_model(ngram_order, smoothing_method, high_cut_threshold, low_cut_threshold)
 
     #OPTIONAL STEP 7: cat out model performances
