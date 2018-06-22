@@ -1,5 +1,5 @@
 # Concept Sequence Tagging for a Movie Domain
-First project of Language Understanding Systems, Fall Semester 2017, University of Trento.
+First project of Language Understanding Systems, Spring Semester 2017, University of Trento.
 
 The project consist in building a model for concept sequence tagging for a Movie Domain.
 
