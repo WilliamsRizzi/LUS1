@@ -34,3 +34,4 @@ python2.7 main.py
 Please note that the default configuration will clean up the sandbox when done.
 
 For any further information about eh working of the algorithm do not hesitate to contact me or read the [report.pdf](report.pdf)
+\n
